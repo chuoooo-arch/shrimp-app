@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>แอปคำนวณกุ้ง คู่/คี่ + เลขท้าย</title>
+  <style>
+    :root{
+      --bg:#f6f7fb; --card:#ffffff; --text:#1f2937; --muted:#6b7280;
+      --line:#e5e7eb; --green:#d1fae5; --greenText:#065f46;
+      --red:#fee2e2; --redText:#991b1b; --blue:#dbeafe; --blueText:#1e40af;
+    }
+    *{box-sizing:border-box}
+    body{margin:0;background:var(--bg);font-family:Arial,Helvetica,sans-serif;color:var(--text)}
+    .wrap{max-width:700px;margin:0 auto;padding:14px}
+    .card{background:var(--card);border-radius:16px;padding:14px;margin-bottom:12px;box-shadow:0 2px 10px rgba(0,0,0,.05)}
+    h1{font-size:22px;margin:0 0 10px;text-align:center}
+    h2{font-size:18px;margin:0 0 10px}
+    .sub{color:var(--muted);font-size:13px;line-height:1.5}
+    label{display:block;font-weight:700;margin:10px 0 6px}
+    select,input,textarea,button{width:100%;font-size:16px;border-radius:12px;border:1px solid var(--line);padding:12px}
+    textarea{min-height:90px;resize:vertical}
+    button{border:none;font-weight:700;cursor:pointer}
+    .btn{background:#111827;color:#fff}
+    .btn2{background:#eef2ff;color:#312e81}
+    .btn3{background:#ecfeff;color:#155e75}
+    .grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+    .result{padding:14px;border-radius:14px;text-align:center;margin-top:10px}
+    .even{background:var(--green);color:var(--greenText)}
+    .odd{background:var(--red);color:var(--redText)}
+    .hint{background:var(--blue);color:var(--blueText);padding:10px;border-radius:12px;font-size:14px}
+    .pill{display:inline-block;padding:5px 10px;border-radius:999px;background:#f3f4f6;margin:4px 4px 0 0;font-size:13px}
+    table{width:100%;border-collapse:collapse;font-size:14px}
+    th,td{border-bottom:1px solid var(--line);padding:8px;text-align:left;vertical-align:top}
+    th{background:#fafafa}
+    .small{font-size:12px;color:var(--muted)}
+    .right{text-align:right}
+    .danger{background:#fff1f2;color:#9f1239}
+  </style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="card">
+    <h1>📱 แอปคำนวณกุ้ง คู่/คี่ + เลขท้าย</h1>
+    <div class="sub">ใช้ได้ทั้งกดเลือก และพูด/พิมพ์บรรยายลักษณะกุ้ง จากนั้นระบบจะคำนวณผล พร้อมบันทึกประวัติในเครื่องอัตโนมัติ</div>
+  </div>
+
+  <div class="card">
+    <h2>1) เลือกข้อมูลหลัก</h2>
+    <div class="grid">
+      <div>
+        <label>ขนาดตัว</label>
+        <select id="size">
+          <option value="เล็ก">เล็ก</option>
+          <option value="กลาง" selected>กลาง</option>
+          <option value="ใหญ่">ใหญ่</option>
+        </select>
+      </div>
+      <div>
+        <label>สภาพ</label>
+        <select id="condition">
+          <option value="สมบูรณ์" selected>สมบูรณ์</option>
+          <option value="ไม่สมบูรณ์">ไม่สมบูรณ์</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="grid">
+      <div>
+        <label>ก้าม/แขน</label>
+        <select id="claw">
+          <option value="สองข้าง" selected>สองข้าง</option>
+          <option value="ซ้าย">ซ้าย</option>
+          <option value="ขวา">ขวา</option>
+          <option value="ไม่มี">ไม่มี</option>
+        </select>
+      </div>
+      <div>
+        <label>ความสมดุลก้าม</label>
+        <select id="balance">
+          <option value="ปกติ" selected>ปกติ</option>
+          <option value="ไม่เท่ากัน">ไม่เท่ากัน</option>
+          <option value="สั้น/เล็ก">สั้น/เล็ก</option>
+          <option value="ยาว/ใหญ่">ยาว/ใหญ่</option>
+        </select>
+      </div>
+    </div>
+
+    <button class="btn" onclick="calculateNow()">คำนวณทันที</button>
+    <div id="resultBox" class="result even">
+      <div style="font-size:28px;font-weight:800">ออกคู่</div>
+      <div style="margin-top:6px;font-size:18px">เลขท้ายที่เป็นไปได้: <b>0, 2, 4, 6, 8</b></div>
+      <div class="small" style="margin-top:6px">เหตุผล: ค่าเริ่มต้น</div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>2) พูดหรือพิมพ์ลักษณะกุ้ง</h2>
+    <div class="sub">ตัวอย่าง: “ตัวใหญ่ หัวโต ก้ามขวาเล็กสั้น” หรือ “ไม่มีกร้าม ตัวยาวกลางธรรมดา”</div>
+    <label>คำบรรยาย</label>
+    <textarea id="desc" placeholder="พูดหรือพิมพ์ลักษณะกุ้งที่เห็น"></textarea>
+    <div class="grid">
+      <button class="btn2" onclick="startVoice()">🎤 พูดเข้าไป</button>
+      <button class="btn3" onclick="parseDescription()">ถอดคำและคำนวณ</button>
+    </div>
+    <div id="voiceStatus" class="small" style="margin-top:8px">สถานะ: พร้อมใช้งาน</div>
+    <div class="hint" style="margin-top:10px">
+      คำที่ระบบพอจับได้: เล็ก / กลาง / ใหญ่ / หัวโต / สมบูรณ์ / ไม่สมบูรณ์ / ไม่มี / ซ้าย / ขวา / สองข้าง / ยาว / สั้น / เล็ก / ใหญ่ / ดิ้น / หมดแรง
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>3) บันทึกข้อมูล</h2>
+    <div class="grid">
+      <div>
+        <label>ชื่อล็อต / บ่อ / รอบ</label>
+        <input id="batch" placeholder="เช่น ล็อต A / บ่อ 3 / รอบเช้า" />
+      </div>
+      <div>
+        <label>น้ำหนัก (กรัม) - ถ้ามี</label>
+        <input id="weight" type="number" step="0.01" placeholder="เช่น 28.5" />
+      </div>
+    </div>
+    <button class="btn" onclick="saveRecord()">บันทึกผลนี้</button>
+    <div id="saveMsg" class="small" style="margin-top:8px"></div>
+  </div>
+
+  <div class="card">
+    <h2>4) สรุปผลสะสม</h2>
+    <div id="summary"></div>
+  </div>
+
+  <div class="card">
+    <h2>5) ประวัติที่บันทึก</h2>
+    <div class="grid">
+      <button class="btn2" onclick="exportCSV()">ส่งออก CSV</button>
+      <button class="danger" onclick="clearAllRecords()">ล้างข้อมูลทั้งหมด</button>
+    </div>
+    <div style="overflow:auto;margin-top:10px">
+      <table id="historyTable">
+        <thead>
+          <tr>
+            <th>เวลา</th>
+            <th>ล็อต/รอบ</th>
+            <th>รายละเอียด</th>
+            <th>ผล</th>
+            <th>เลขท้าย</th>
+            <th>นน.</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </div>
+    <div class="small" style="margin-top:8px">ข้อมูลจะเก็บไว้ในเครื่อง/เบราว์เซอร์นี้อัตโนมัติ</div>
+  </div>
+
+</div>
+
+<script>
+const STORAGE_KEY = "shrimp_app_records_v2";
+let currentResult = { outcome:"คู่", tails:"0, 2, 4, 6, 8", reason:"ค่าเริ่มต้น" };
+
+function getTails(outcome){
+  return outcome === "คู่" ? "0, 2, 4, 6, 8" : "1, 3, 5, 7, 9";
+}
+
+function ruleEngine(data){
+  let scoreOdd = 0, scoreEven = 0, reasons = [];
+  const d = (data.description || "").trim();
+
+  // Manual selections
+  if(data.condition === "ไม่สมบูรณ์"){ scoreEven += 2; reasons.push("สภาพไม่สมบูรณ์ → โน้มไปคู่"); }
+  if(data.claw === "ไม่มี"){ scoreEven += 3; reasons.push("ไม่มีก้าม/แขน → โน้มไปคู่"); }
+  if(data.claw === "สองข้าง" && data.size === "ใหญ่" && data.condition === "สมบูรณ์"){ scoreOdd += 2; reasons.push("ตัวใหญ่ + สองข้าง + สมบูรณ์ → โน้มไปคี่"); }
+  if(data.size === "เล็ก" && data.condition === "สมบูรณ์"){ scoreOdd += 1; reasons.push("ตัวเล็กแต่สมบูรณ์ → โน้มไปคี่"); }
+  if(data.balance === "ไม่เท่ากัน"){ scoreOdd += 2; reasons.push("ก้ามไม่เท่ากัน → โน้มไปคี่"); }
+  if(data.balance === "สั้น/เล็ก"){ scoreEven += 1; reasons.push("ก้ามสั้น/เล็ก → โน้มไปคู่"); }
+  if(data.balance === "ยาว/ใหญ่"){ scoreOdd += 1; reasons.push("ก้ามยาว/ใหญ่ → โน้มไปคี่"); }
+  if(data.claw === "ซ้าย" || data.claw === "ขวา"){ scoreEven += 1; reasons.push("มีก้ามด้านเดียว → โน้มไปคู่"); }
+
+  // Text heuristics from user's dataset themes
+  if(/ไม่มี|ไม่มีก้าม|ไม่มีกร้าม|แขนเดียว|ก้ามเดียว|กร้ามเดียว/.test(d)){ scoreEven += 2; reasons.push("ข้อความระบุว่าขาด/มีด้านเดียว → โน้มไปคู่"); }
+  if(/ไม่สมบูรณ์|หมดแรง|สภาพแย่/.test(d)){ scoreOdd += 1; reasons.push("ข้อความระบุสภาพอ่อนแรง/แย่ → พบแนวโน้มคี่ในบางเคส"); }
+  if(/สมบูรณ์/.test(d) && /ไม่เต็ม/.test(d)){ scoreOdd += 2; reasons.push("สมบูรณ์แต่ไม่เต็ม → โน้มไปคี่"); }
+  if(/หัวโต/.test(d)){ scoreOdd += 1; reasons.push("หัวโต → เพิ่มน้ำหนักไปคี่เล็กน้อย"); }
+  if(/ขวาเล็กสั้น|ซ้ายเล็กสั้น|เล็กสั้น/.test(d)){ scoreEven += 1; reasons.push("มีก้ามเล็กสั้นข้างหนึ่ง → โน้มไปคู่"); }
+  if(/ก้ามใหญ่คู่|กร้ามใหญ่คู่/.test(d)){ scoreOdd += 2; reasons.push("ก้ามใหญ่คู่ → โน้มไปคี่"); }
+  if(/สองข้าง|ซ้ายขวา|ยาวสองแขน|ยาวสองด้าน/.test(d) && /ตัวใหญ่|ใหญ่/.test(d)){ scoreOdd += 1; reasons.push("ใหญ่และมีสองด้านชัดเจน → โน้มไปคี่"); }
+
+  // Tie-breaker
+  let outcome = scoreOdd > scoreEven ? "คี่" : "คู่";
+  if(scoreOdd === scoreEven){
+    // default safer: follow incompleteness first, else pair
+    outcome = (data.condition === "ไม่สมบูรณ์" || data.claw === "ไม่มี" || data.claw === "ซ้าย" || data.claw === "ขวา") ? "คู่" : "คู่";
+    reasons.push("คะแนนสูสี → ใช้กฎ default ออกคู่");
+  }
+
+  return {
+    outcome,
+    tails: getTails(outcome),
+    reason: reasons.length ? reasons.slice(0,3).join(" | ") : "คำนวณจากข้อมูลที่เลือก"
+  };
+}
+
+function calculateNow(){
+  const data = {
+    size: document.getElementById("size").value,
+    condition: document.getElementById("condition").value,
+    claw: document.getElementById("claw").value,
+    balance: document.getElementById("balance").value,
+    description: document.getElementById("desc").value
+  };
+  currentResult = ruleEngine(data);
+  renderResult(currentResult);
+  return currentResult;
+}
+
+function renderResult(r){
+  const box = document.getElementById("resultBox");
+  box.className = "result " + (r.outcome === "คู่" ? "even" : "odd");
+  box.innerHTML = `
+    <div style="font-size:28px;font-weight:800">ออก${r.outcome}</div>
+    <div style="margin-top:6px;font-size:18px">เลขท้ายที่เป็นไปได้: <b>${r.tails}</b></div>
+    <div class="small" style="margin-top:6px">เหตุผล: ${r.reason}</div>
+  `;
+}
+
+function parseDescription(){
+  const t = document.getElementById("desc").value.trim();
+  if(!t){
+    alert("กรุณาพิมพ์หรือพูดลักษณะกุ้งก่อน");
+    return;
+  }
+
+  if(/ตัวเล็ก|เล็ก/.test(t)) document.getElementById("size").value = "เล็ก";
+  if(/ตัวกลาง|ไซสกลาง|ไซส์กลาง|กลาง/.test(t)) document.getElementById("size").value = "กลาง";
+  if(/ตัวใหญ่|ใหญ่/.test(t)) document.getElementById("size").value = "ใหญ่";
+
+  if(/ไม่สมบูรณ์|หมดแรง|สภาพแย่/.test(t)) document.getElementById("condition").value = "ไม่สมบูรณ์";
+  else if(/สมบูรณ์/.test(t)) document.getElementById("condition").value = "สมบูรณ์";
+
+  if(/ไม่มีกร้าม|ไม่มีกร้าม|ไม่มีก้าม|ไม่มีแขน|ไม่มี/.test(t)) document.getElementById("claw").value = "ไม่มี";
+  else if(/ก้ามเดียว|กร้ามเดียว|แขนเดียว/.test(t)){
+    if(/ซ้าย/.test(t)) document.getElementById("claw").value = "ซ้าย";
+    else if(/ขวา/.test(t)) document.getElementById("claw").value = "ขวา";
+  } else if(/ซ้ายขวา|สองข้าง|สองแขน|สองด้าน/.test(t)){
+    document.getElementById("claw").value = "สองข้าง";
+  } else if(/ซ้าย/.test(t) && !/ขวา/.test(t)){
+    document.getElementById("claw").value = "ซ้าย";
+  } else if(/ขวา/.test(t) && !/ซ้าย/.test(t)){
+    document.getElementById("claw").value = "ขวา";
+  }
+
+  if(/ไม่เท่า|สั้นกว่า|ยาวกว่า/.test(t)) document.getElementById("balance").value = "ไม่เท่ากัน";
+  else if(/เล็กสั้น|สั้น/.test(t)) document.getElementById("balance").value = "สั้น/เล็ก";
+  else if(/ยาวใหญ่|ยาว/.test(t)) document.getElementById("balance").value = "ยาว/ใหญ่";
+  else document.getElementById("balance").value = "ปกติ";
+
+  calculateNow();
+}
+
+function getRecords(){
+  try{
+    return JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]");
+  }catch(e){ return []; }
+}
+
+function setRecords(rows){
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(rows));
+}
+
+function saveRecord(){
+  const res = calculateNow();
+  const row = {
+    time: new Date().toLocaleString("th-TH"),
+    batch: document.getElementById("batch").value || "-",
+    weight: document.getElementById("weight").value || "-",
+    description: document.getElementById("desc").value || `${document.getElementById("size").value}, ${document.getElementById("condition").value}, ${document.getElementById("claw").value}`,
+    size: document.getElementById("size").value,
+    condition: document.getElementById("condition").value,
+    claw: document.getElementById("claw").value,
+    balance: document.getElementById("balance").value,
+    outcome: res.outcome,
+    tails: res.tails
+  };
+  const rows = getRecords();
+  rows.unshift(row);
+  setRecords(rows);
+  document.getElementById("saveMsg").textContent = "บันทึกเรียบร้อย";
+  renderHistory();
+}
+
+function renderSummary(){
+  const rows = getRecords();
+  let even = 0, odd = 0, weights = 0, weightCount = 0;
+  rows.forEach(r=>{
+    if(r.outcome === "คู่") even++; else odd++;
+    const w = parseFloat(r.weight);
+    if(!isNaN(w)){ weights += w; weightCount++; }
+  });
+  const avg = weightCount ? (weights/weightCount).toFixed(2) : "-";
+  document.getElementById("summary").innerHTML = `
+    <div class="pill">บันทึกทั้งหมด: <b>${rows.length}</b></div>
+    <div class="pill">ออกคู่: <b>${even}</b></div>
+    <div class="pill">ออกคี่: <b>${odd}</b></div>
+    <div class="pill">น้ำหนักเฉลี่ย: <b>${avg}</b></div>
+  `;
+}
+
+function renderHistory(){
+  renderSummary();
+  const tbody = document.querySelector("#historyTable tbody");
+  const rows = getRecords();
+  tbody.innerHTML = rows.map(r => `
+    <tr>
+      <td>${r.time}</td>
+      <td>${r.batch}</td>
+      <td>${r.description}</td>
+      <td>ออก${r.outcome}</td>
+      <td>${r.tails}</td>
+      <td class="right">${r.weight}</td>
+    </tr>
+  `).join("") || `<tr><td colspan="6" class="small">ยังไม่มีข้อมูล</td></tr>`;
+}
+
+function exportCSV(){
+  const rows = getRecords();
+  if(!rows.length){ alert("ยังไม่มีข้อมูลให้ส่งออก"); return; }
+  const headers = ["เวลา","ล็อต/รอบ","น้ำหนัก","รายละเอียด","ขนาด","สภาพ","ก้าม","สมดุล","ผล","เลขท้าย"];
+  const csv = [
+    headers.join(","),
+    ...rows.map(r => [
+      safe(r.time), safe(r.batch), safe(r.weight), safe(r.description),
+      safe(r.size), safe(r.condition), safe(r.claw), safe(r.balance),
+      safe("ออก"+r.outcome), safe(r.tails)
+    ].join(","))
+  ].join("\n");
+
+  const blob = new Blob(["\ufeff" + csv], {type:"text/csv;charset=utf-8;"});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = "shrimp_records.csv";
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+function safe(v){
+  return `"${String(v ?? "").replace(/"/g, '""')}"`;
+}
+
+function clearAllRecords(){
+  if(confirm("ล้างข้อมูลทั้งหมดใช่ไหม?")){
+    localStorage.removeItem(STORAGE_KEY);
+    renderHistory();
+  }
+}
+
+function startVoice(){
+  const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if(!SpeechRecognition){
+    document.getElementById("voiceStatus").textContent = "สถานะ: เบราว์เซอร์นี้ยังไม่รองรับการพูดเข้าไมค์";
+    alert("เครื่อง/เบราว์เซอร์นี้อาจยังไม่รองรับการพูดเข้าไมค์ ให้ใช้พิมพ์แทนได้ครับ");
+    return;
+  }
+  const recognition = new SpeechRecognition();
+  recognition.lang = "th-TH";
+  recognition.interimResults = false;
+  recognition.maxAlternatives = 1;
+  document.getElementById("voiceStatus").textContent = "สถานะ: กำลังฟัง...";
+  recognition.start();
+
+  recognition.onresult = function(event){
+    const transcript = event.results[0][0].transcript;
+    document.getElementById("desc").value = transcript;
+    document.getElementById("voiceStatus").textContent = "สถานะ: ได้ข้อความแล้ว";
+    parseDescription();
+  };
+  recognition.onerror = function(event){
+    document.getElementById("voiceStatus").textContent = "สถานะ: เกิดข้อผิดพลาด - " + event.error;
+  };
+  recognition.onend = function(){
+    if(document.getElementById("voiceStatus").textContent === "สถานะ: กำลังฟัง..."){
+      document.getElementById("voiceStatus").textContent = "สถานะ: หยุดฟังแล้ว";
+    }
+  };
+}
+
+renderHistory();
+calculateNow();
+</script>
+</body>
+</html>
