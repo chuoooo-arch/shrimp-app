@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Shrimp Pro Dashboard</title>
+<style>
+body{font-family:Arial;padding:15px}
+h2{text-align:center}
+select,button{width:100%;padding:12px;margin:8px 0;font-size:16px}
+.result{padding:15px;border-radius:10px;text-align:center;font-size:18px}
+.box{border:1px solid #ccc;padding:12px;border-radius:10px;margin-top:10px}
+</style>
+</head>
+<body>
+
+<h2>📊 กุ้ง PRO</h2>
+
+<label>ขนาด</label>
+<select id="size">
+<option>เล็ก</option>
+<option>กลาง</option>
+<option>ใหญ่</option>
+</select>
+
+<label>สภาพ</label>
+<select id="condition">
+<option>สมบูรณ์</option>
+<option>ไม่สมบูรณ์</option>
+</select>
+
+<label>ก้าม</label>
+<select id="claw">
+<option>สองข้าง</option>
+<option>ซ้าย</option>
+<option>ขวา</option>
+<option>ไม่มี</option>
+</select>
+
+<button onclick="calc()">คำนวณ</button>
+
+<div id="result" class="result"></div>
+
+<button onclick="save()">บันทึก</button>
+
+<div class="box">
+<h3>📊 Dashboard วันนี้</h3>
+<div id="dash"></div>
+</div>
+
+<script>
+let data = JSON.parse(localStorage.getItem("shrimpData")||"[]")
+
+function calc(){
+ let size = document.getElementById("size").value
+ let condition = document.getElementById("condition").value
+ let claw = document.getElementById("claw").value
+
+ let result = "คู่"
+
+ if(condition==="ไม่สมบูรณ์" || claw==="ไม่มี"){
+   result="คู่"
+ } else if(size==="ใหญ่" && claw==="สองข้าง"){
+   result="คี่"
+ } else if(size==="เล็ก"){
+   result="คี่"
+ }
+
+ document.getElementById("result").innerHTML =
+   "ออก: <b>"+result+"</b><br>" +
+   "เลขท้าย: " + (result==="คู่"?"0,2,4,6,8":"1,3,5,7,9")
+
+ window.current = {size,condition,claw,result}
+}
+
+function save(){
+ if(!window.current){alert("คำนวณก่อน");return}
+ data.push({...window.current,date:new Date().toDateString()})
+ localStorage.setItem("shrimpData",JSON.stringify(data))
+ updateDash()
+}
+
+function updateDash(){
+ let today = new Date().toDateString()
+ let todayData = data.filter(x=>x.date===today)
+
+ let even = todayData.filter(x=>x.result==="คู่").length
+ let odd = todayData.filter(x=>x.result==="คี่").length
+ let total = todayData.length
+
+ let evenP = total?((even/total)*100).toFixed(1):0
+ let oddP = total?((odd/total)*100).toFixed(1):0
+
+ document.getElementById("dash").innerHTML = `
+ คู่: ${evenP}% (${even})
+ <br>คี่: ${oddP}% (${odd})
+ <br>รวม: ${total}
+ `
+}
+
+updateDash()
+</script>
+
+</body>
+</html>
