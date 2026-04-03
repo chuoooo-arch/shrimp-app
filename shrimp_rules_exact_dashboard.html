@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>กุ้ง PRO เป๊ะตามกฎ</title>
+<style>
+:root {
+  --bg:#f5f7fb; --card:#fff; --line:#e5e7eb; --text:#111827; --muted:#6b7280;
+  --green:#dcfce7; --greenText:#166534; --red:#fee2e2; --redText:#991b1b; --blue:#dbeafe;
+}
+* { box-sizing:border-box; }
+body { margin:0; font-family:Arial,Helvetica,sans-serif; background:var(--bg); color:var(--text); }
+.wrap { max-width:920px; margin:0 auto; padding:14px; }
+.card { background:var(--card); border-radius:16px; padding:14px; margin-bottom:12px; box-shadow:0 2px 10px rgba(0,0,0,.05); }
+h1,h2,h3 { margin:0 0 10px; }
+.sub { color:var(--muted); font-size:13px; line-height:1.5; }
+label { display:block; margin:10px 0 6px; font-weight:700; }
+input, select, button, textarea { width:100%; font-size:16px; padding:12px; border-radius:12px; border:1px solid var(--line); }
+button { border:none; font-weight:700; cursor:pointer; }
+.btn { background:#111827; color:#fff; }
+.btn2 { background:#e0f2fe; color:#075985; }
+.grid { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+.result { border-radius:14px; padding:14px; text-align:center; }
+.even { background:var(--green); color:var(--greenText); }
+.odd { background:var(--red); color:var(--redText); }
+.pill { display:inline-block; padding:6px 10px; border-radius:999px; background:#f3f4f6; margin:4px 4px 0 0; font-size:13px; }
+.small { font-size:12px; color:var(--muted); }
+table { width:100%; border-collapse:collapse; font-size:14px; }
+th,td { border-bottom:1px solid var(--line); text-align:left; vertical-align:top; padding:8px; }
+th { background:#fafafa; position:sticky; top:0; }
+.scroll { max-height:380px; overflow:auto; border:1px solid var(--line); border-radius:12px; }
+.badge { display:inline-block; padding:4px 8px; border-radius:999px; font-weight:700; }
+.badge-even { background:var(--green); color:var(--greenText); }
+.badge-odd { background:var(--red); color:var(--redText); }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="card">
+    <h1>📊 กุ้ง PRO เป๊ะตามกฎที่ให้มา</h1>
+    <div class="sub">เวอร์ชันนี้ใส่ข้อมูลกฎจากรายการที่คุณส่งมาแล้วทั้งหมด 34 ข้อ ใช้เลือกจากรายการจริง หรือพิมพ์คำบรรยายให้ระบบจับคู่กฎที่ใกล้ที่สุด แล้วคำนวณผล คู่/คี่ + เลขท้าย พร้อม dashboard วันนี้</div>
+  </div>
+
+  <div class="card">
+    <h2>1) เลือกกฎจากรายการจริง</h2>
+    <label>เลือกลักษณะกุ้ง</label>
+    <select id="ruleSelect"></select>
+    <div class="grid">
+      <button class="btn" onclick="applySelectedRule()">คำนวณจากรายการนี้</button>
+      <button class="btn2" onclick="saveCurrent()">บันทึกผลนี้</button>
+    </div>
+    <div id="resultBox" class="result even" style="margin-top:10px">
+      <div style="font-size:28px;font-weight:800">ออกคู่</div>
+      <div style="margin-top:6px;font-size:18px">เลขท้าย: <b>0,2,4,6,8</b></div>
+      <div class="small" style="margin-top:6px">เลือกจากกฎที่บันทึกไว้</div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>2) หรือพิมพ์คำบรรยายให้ระบบจับคู่กฎ</h2>
+    <textarea id="desc" placeholder="เช่น หัวโต กร้ามเดียวขวาเล็ก หรือ ไม่มีกร้าม ตัวยาวกลางธรรมดา"></textarea>
+    <div class="grid">
+      <button class="btn" onclick="matchFromText()">จับคู่กฎอัตโนมัติ</button>
+      <button class="btn2" onclick="document.getElementById('desc').value='';">ล้างข้อความ</button>
+    </div>
+    <div id="matchInfo" class="small" style="margin-top:8px"></div>
+  </div>
+
+  <div class="card">
+    <h2>3) Dashboard วันนี้</h2>
+    <div id="summary"></div>
+  </div>
+
+  <div class="card">
+    <h2>4) ประวัติวันนี้</h2>
+    <div class="grid">
+      <button class="btn2" onclick="exportCSV()">ส่งออก CSV</button>
+      <button class="btn2" onclick="clearToday()">ล้างข้อมูลวันนี้</button>
+    </div>
+    <div class="scroll" style="margin-top:10px">
+      <table>
+        <thead>
+          <tr><th>เวลา</th><th>รายการ</th><th>ผล</th><th>เลขท้าย</th></tr>
+        </thead>
+        <tbody id="historyBody"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>5) ตารางกฎทั้งหมด</h2>
+    <div class="scroll">
+      <table>
+        <thead>
+          <tr><th>#</th><th>ลักษณะกุ้ง</th><th>ผล</th><th>เลขท้าย</th></tr>
+        </thead>
+        <tbody id="rulesBody"></tbody>
+      </table>
+    </div>
+    <div class="small" style="margin-top:8px">หมายเหตุ: มี 1 บรรทัดที่ในข้อความเดิมพิมพ์ว่า “ออกตู่” แต่มีรายการซ้ำคำเดียวกันในภายหลังเป็น “ออกคู่” จึงปรับเป็น “ออกคู่” ให้ตรงกัน</div>
+  </div>
+</div>
+
+<script>
+const RULES = [{"id": 1, "text": "แขนยาวกลางซ้ายขวา ตัวกลาง", "norm": "แขนยาวกลางซ้ายขวาตัวกลาง", "outcome": "คู่", "tails": "0,2,4,6,8"}, {"id": 2, "text": "หัวโตยาวแขนเล็กยาวคู่ ยาวกลาง", "norm": "หัวโตยาวแขนเล็กยาวคู่ยาวกลาง", "outcome": "คี่", "tails": "1,3,5,7,9"}, {"id": 3, "text": "แขนเล็ก2แขนตัวใหญ่", "norm": "แขนเล็ก2แขนตัวใหญ่", "outcome": "คู่", "tails": "0,2,4,6,8"}, {"id": 4, "text": "แขวยาวซ้ายตัวใหญ่", "norm": "แขนยาวซ้ายตัวใหญ่", "outcome": "คู่", "tails": "0,2,4,6,8"}, {"id": 5, "text": "ตัวใหญ่ก้ามใหญ่ยาวสองด้าน สมบูรณ์ไม่เต็มคู่", "norm": "ตัวใหญ่ก้ามใหญ่ยาวสองด้านสมบูรณ์ไม่เต็มคู่", "outcome": "คี่", "tails": "1,3,5,7,9"}, {"id": 6, "text": "ตัวกลางแขนยาวสองแขน แขนสามเหลีม", "norm": "ตัวกลางแขนยาวสองแขนแขนสามเหลีม", "outcome": "คู่", "tails": "0,2,4,6,8"}, {"id": 7, "text": "ตัวใหญ่ก้ามใหญ่ยาวสองด้านตัวใหญ่ สมบูรณ์ แขนยืดไม่เต็มคู่ยาว", "norm": "ตัวใหญ่ก้ามใหญ่ยาวสองด้านตัวใหญ่สมบูรณ์แขนยืดไม่เต็มคู่ยาว", "outcome": "คี่", "tails": "1,3,5,7,9"}, {"id": 8, "text": "ตัวเล็กแขนยาวเต็มสองแขน สภาพแย่หมดแรง", "norm": "ตัวเล็กแขนยาวเต็มสองแขนสภาพแย่หมดแรง", "outcome": "คี่", "tails": "1,3,5,7,9"}, {"id": 9, "text": "ก้ามซ้ายเล็กสั้นกว่าก้ามขวาตัวยาวใหญ่", "norm": "ก้ามซ้ายเล็กสั้นกว่าก้ามขวาตัวยาวใหญ่", "outcome": "คี่", "tails": "1,3,5,7,9"}, {"id": 10, "text": "ก้ามเดียวก้ามซ้ายตัวไม่ยาวไม่ใหญ่หัวโต", "norm": "ก้ามเดียวก้ามซ้ายตัวไม่ยาวไม่ใหญ่หัวโต", "outcome": "คู่", "tails": "0,2,4,6,8"}, {"id": 11, "text": "ตัวใหญ่หัวโตกว้ามยาวใหญ่ขนาดกลาง", "norm": "ตัวใหญ่หัวโตก้ามยาวใหญ่ขนาดกลาง", "outcome": "คี่", "tails": "1,3,5,7,9"}, {"id": 12, "text": "กร้ามขวาเล็กสั้นกว่ากร้ามซ้าย ตัวโตใหญ่", "norm": "ก้ามขวาเล็กสั้นกว่าก้ามซ้ายตัวโตใหญ่", "outcome": "คู่", "tails": "0,2,4,6,8"}, {"id": 13, "text": "ตัวยาวกร้ามยาวซ้ายขวา", "norm": "ตัวยาวก้ามยาวซ้ายขวา", "outcome": "คี่", "tails": "1,3,5,7,9"}, {"id": 14, "text": "กร้ามเท่าซ้ายขวาเล็กทั้งสองข้างตัวใหญ่หัวกลาง กุ้งดิ้น", "norm": "ก้ามเท่าซ้ายขวาเล็กทั้งสองข้างตัวใหญ่หัวกลางกุ้งดิ้น", "outcome": "คี่", "tails": "1,3,5,7,9"}, {"id": 15, "text": "ไม่มีกร้าม ตัวยาวกลางธรรมดา", "norm": "ไม่มีก้ามตัวยาวกลางธรรมดา", "outcome": "คู่", "tails": "0,2,4,6,8"}, {"id": 16, "text": "กร้ามเดียวซ้ายยาวใหญ่ ตัวไซสกลาง", "norm": "ก้ามเดียวซ้ายยาวใหญ่ตัวไซส์กลาง", "outcome": "คู่", "tails": "0,2,4,6,8"}, {"id": 17, "text": "กร้ามซ้ายมีข้อเดียวกร้ามขวาเต็มขนาดกลางเล็ก ตัวไซส์กลางหัวโต", "norm": "ก้ามซ้ายมีข้อเดียวก้ามขวาเต็มขนาดกลางเล็กตัวไซส์์กลางหัวโต", "outcome": "คู่", "tails": "0,2,4,6,8"}, {"id": 18, "text": "หัวโต กร้ามขวาเล็กสั้น", "norm": "หัวโตก้ามขวาเล็กสั้น", "outcome": "คู่", "tails": "0,2,4,6,8"}, {"id": 19, "text": "กร้ามขวาเล็กสั้น ซ้ายกลาง ตัวยาวกลาง", "norm": "ก้ามขวาเล็กสั้นซ้ายกลางตัวยาวกลาง", "outcome": "คู่", "tails": "0,2,4,6,8"}, {"id": 20, "text": "กร้ามซ้ายยาวใหญ่กล่าง ตัวกลางหัวโต", "norm": "ก้ามซ้ายยาวใหญ่กล่างตัวกลางหัวโต", "outcome": "คู่", "tails": "0,2,4,6,8"}, {"id": 21, "text": "กร้ามซ้ายจวายาวใหญ่ ตัวกลางหัวโต", "norm": "ก้ามซ้ายขวายาวใหญ่ตัวกลางหัวโต", "outcome": "คู่", "tails": "0,2,4,6,8"}, {"id": 22, "text": "กร้ามกลางซ้ายขวา ตัวใหญ่ขนาดกลาง", "norm": "ก้ามกลางซ้ายขวาตัวใหญ่ขนาดกลาง", "outcome": "คู่", "tails": "0,2,4,6,8"}, {"id": 23, "text": "กร้ามใหญ่คู่ ตัวกลาง", "norm": "ก้ามใหญ่คู่ตัวกลาง", "outcome": "คี่", "tails": "1,3,5,7,9"}, {"id": 24, "text": "ซ้ายบาวใหญ่ขวาเล็กสั้น ตัวใหญ่กลาง", "norm": "ซ้ายบาวใหญ่ขวาเล็กสั้นตัวใหญ่กลาง", "outcome": "คี่", "tails": "1,3,5,7,9"}, {"id": 25, "text": "หัวโตกร้ามเดียวขวาเล็ก", "norm": "หัวโตก้ามเดียวขวาเล็ก", "outcome": "คี่", "tails": "1,3,5,7,9"}, {"id": 26, "text": "หัวโตตัวยาว กร้ามเดียวขวาเล็ก", "norm": "หัวโตตัวยาวก้ามเดียวขวาเล็ก", "outcome": "คี่", "tails": "1,3,5,7,9"}, {"id": 27, "text": "หัวโตตัวใหญ ซ้ายเล็กกร้ามเดียว", "norm": "หัวโตตัวใหญซ้ายเล็กก้ามเดียว", "outcome": "คู่", "tails": "0,2,4,6,8"}, {"id": 28, "text": "ซ้ายยาวใหญ่ขวาสันเล็กหัวโตตัวยาว", "norm": "ซ้ายยาวใหญ่ขวาสันเล็กหัวโตตัวยาว", "outcome": "คู่", "tails": "0,2,4,6,8"}, {"id": 29, "text": "แขนเดียวขวาใหญ่ตัวกลางใหญ่", "norm": "แขนเดียวขวาใหญ่ตัวกลางใหญ่", "outcome": "คู่", "tails": "0,2,4,6,8"}, {"id": 30, "text": "แขนเดียวซ้ายใหญ่ยาว เล็กหัวโต", "norm": "แขนเดียวซ้ายใหญ่ยาวเล็กหัวโต", "outcome": "คู่", "tails": "0,2,4,6,8"}, {"id": 31, "text": "หัวโต แขนเดียวซ้ายยาวใหญ่", "norm": "หัวโตแขนเดียวซ้ายยาวใหญ่", "outcome": "คี่", "tails": "1,3,5,7,9"}, {"id": 32, "text": "คู่ตัวยาว ไม่มีแขน", "norm": "คู่ตัวยาวไม่มีแขน", "outcome": "คี่", "tails": "1,3,5,7,9"}, {"id": 33, "text": "แขวเท่าไม่ใหญ่ยาวกลาง ตัวใหญ่", "norm": "แขนเท่าไม่ใหญ่ยาวกลางตัวใหญ่", "outcome": "คู่", "tails": "0,2,4,6,8"}, {"id": 34, "text": "ตัวใหญ่ กร้ามเท่าเล็ก", "norm": "ตัวใหญ่ก้ามเท่าเล็ก", "outcome": "คี่", "tails": "1,3,5,7,9"}];
+const STORAGE_KEY = "shrimp_rules_exact_records";
+let currentRule = RULES[0];
+
+function todayKey() {
+  const d = new Date();
+  return d.getFullYear() + "-" + String(d.getMonth()+1).padStart(2,'0') + "-" + String(d.getDate()).padStart(2,'0');
+}
+
+function loadRecords() {
+  try {
+    return JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]");
+  } catch(e) {
+    return [];
+  }
+}
+
+function saveRecords(rows) {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(rows));
+}
+
+function init() {
+  const sel = document.getElementById("ruleSelect");
+  sel.innerHTML = RULES.map(r => `<option value="${r.id}">${r.id}. ${r.text} → ออก${r.outcome}</option>`).join("");
+  document.getElementById("rulesBody").innerHTML = RULES.map(r => `
+    <tr>
+      <td>${r.id}</td>
+      <td>${r.text}</td>
+      <td><span class="badge ${r.outcome==='คู่'?'badge-even':'badge-odd'}">ออก${r.outcome}</span></td>
+      <td>${r.tails}</td>
+    </tr>`).join("");
+  applySelectedRule();
+  renderDashboard();
+}
+
+function renderResult(rule, note) {
+  currentRule = rule;
+  const box = document.getElementById("resultBox");
+  box.className = "result " + (rule.outcome === "คู่" ? "even" : "odd");
+  box.innerHTML = `
+    <div style="font-size:28px;font-weight:800">ออก${rule.outcome}</div>
+    <div style="margin-top:6px;font-size:18px">เลขท้าย: <b>${rule.tails}</b></div>
+    <div class="small" style="margin-top:6px">${note}</div>
+  `;
+}
+
+function applySelectedRule() {
+  const id = Number(document.getElementById("ruleSelect").value || 1);
+  const rule = RULES.find(r => r.id === id) || RULES[0];
+  renderResult(rule, "คำนวณตรงตามกฎที่เลือก");
+  document.getElementById("matchInfo").textContent = "";
+}
+
+function normalizeText(s) {
+  return (s || "")
+    .toLowerCase()
+    .replaceAll("กร้าม","ก้าม")
+    .replaceAll("แขว","แขน")
+    .replaceAll("กว้าม","ก้าม")
+    .replaceAll("ไซส","ไซส์")
+    .replaceAll("จวา","ขวา")
+    .replaceAll(/\s+/g, "");
+}
+
+function scoreMatch(inputNorm, ruleNorm) {
+  let score = 0;
+  const parts = ruleNorm.match(/.(1, 3)/g) || [];
+  parts.forEach(p => { if (p && inputNorm.includes(p)) score += 1; });
+  if (inputNorm === ruleNorm) score += 100;
+  if (ruleNorm.includes(inputNorm) || inputNorm.includes(ruleNorm)) score += 15;
+  return score;
+}
+
+function matchFromText() {
+  const text = document.getElementById("desc").value.trim();
+  if (!text) {
+    alert("กรุณาพิมพ์คำบรรยายก่อน");
+    return;
+  }
+  const inputNorm = normalizeText(text);
+  let best = null;
+  let bestScore = -1;
+  RULES.forEach(r => {
+    const sc = scoreMatch(inputNorm, r.norm);
+    if (sc > bestScore) {
+      bestScore = sc;
+      best = r;
+    }
+  });
+  if (!best) return;
+  document.getElementById("ruleSelect").value = best.id;
+  renderResult(best, "จับคู่กฎอัตโนมัติจากข้อความที่พิมพ์");
+  document.getElementById("matchInfo").textContent = "จับคู่ได้ใกล้สุด: ข้อ " + best.id + " — " + best.text + " (คะแนน " + bestScore + ")";
+}
+
+function saveCurrent() {
+  const rows = loadRecords();
+  rows.unshift({
+    day: todayKey(),
+    time: new Date().toLocaleTimeString("th-TH"),
+    id: currentRule.id,
+    text: currentRule.text,
+    outcome: currentRule.outcome,
+    tails: currentRule.tails
+  });
+  saveRecords(rows);
+  renderDashboard();
+}
+
+function renderDashboard() {
+  const rows = loadRecords().filter(r => r.day === todayKey());
+  const total = rows.length;
+  const even = rows.filter(r => r.outcome === "คู่").length;
+  const odd = rows.filter(r => r.outcome === "คี่").length;
+  const evenPct = total ? ((even/total)*100).toFixed(1) : "0.0";
+  const oddPct = total ? ((odd/total)*100).toFixed(1) : "0.0";
+  const top = Object.entries(rows.reduce((a,r) => {
+    a[r.id] = (a[r.id] || 0) + 1;
+    return a;
+  }, {})).sort((a,b) => b[1]-a[1])[0];
+
+  document.getElementById("summary").innerHTML = `
+    <span class="pill">วันนี้ทั้งหมด: <b>${total}</b></span>
+    <span class="pill">ออกคู่: <b>${evenPct}%</b> (${even})</span>
+    <span class="pill">ออกคี่: <b>${oddPct}%</b> (${odd})</span>
+    <span class="pill">รายการที่เจอบ่อยสุด: <b>${top ? "ข้อ " + top[0] + " (" + top[1] + " ครั้ง)" : "-"}</b></span>
+  `;
+
+  document.getElementById("historyBody").innerHTML = rows.map(r => `
+    <tr>
+      <td>${r.time}</td>
+      <td>ข้อ ${r.id} — ${r.text}</td>
+      <td>ออก${r.outcome}</td>
+      <td>${r.tails}</td>
+    </tr>
+  `).join("") || `<tr><td colspan="4" class="small">ยังไม่มีข้อมูลวันนี้</td></tr>`;
+}
+
+function clearToday() {
+  const keep = loadRecords().filter(r => r.day !== todayKey());
+  saveRecords(keep);
+  renderDashboard();
+}
+
+function exportCSV() {
+  const rows = loadRecords().filter(r => r.day === todayKey());
+  if (!rows.length) {
+    alert("ยังไม่มีข้อมูลวันนี้");
+    return;
+  }
+  const header = ["วัน","เวลา","ข้อ","ลักษณะกุ้ง","ผล","เลขท้าย"];
+  const lines = [
+    header.join(","),
+    ...rows.map(r => [r.day, r.time, r.id, csvSafe(r.text), "ออก"+r.outcome, csvSafe(r.tails)].join(","))
+  ];
+  const blob = new Blob(["\ufeff"+lines.join("\n")], {type:"text/csv;charset=utf-8;"});
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = "shrimp_rules_exact_today.csv";
+  a.click();
+  URL.revokeObjectURL(a.href);
+}
+
+function csvSafe(v) {
+  return '"' + String(v).replaceAll('"','""') + '"';
+}
+
+init();
+</script>
+</body>
+</html>
